@@ -10,11 +10,13 @@
 
 // Pour les fonctions
 #include "Draw.h"
-#include "Clipping.h"
+
+using namespace std;
 
 // Pour les tableaux
 #include <vector>
 using std::vector;
+
 
 // Enregistre les coordonnées de la souris
 GLint mousex;
@@ -232,19 +234,15 @@ void Render()
 				if (polys[p].points.size() >= 3) {
 					switch (polyColor[p]) {
 					case 1:
-						Fill(polys[p], redColor);
 						break;
 					case 2:
-						Fill(polys[p], blueColor);
 						break;
 					case 3:
-						Fill(polys[p], greenColor);
 						break;
 					case 4:
-						Fill(polys[p], blackColor);
 						break;
 					case 5:
-						Fill(polys[p], purpleColor);
+						break;
 					}
 				}
 			}
@@ -253,15 +251,6 @@ void Render()
 
 	if (clipPoly) {
 		clippedPoly.clear();
-		for (int p = 0; p < polys.size(); p++)
-		{
-			for (int w = 0; w < wins.size(); w++)
-			{
-				if (polys[p].points.size() >= 3 && wins[w].points.size() >= 3 && clipPoly) {
-					UpdateClipping(polys[p], wins[w]);
-				}
-			}
-		}
 
 		// Dessin du polygon clippé
 		glColor3f(1.0f, 0.0f, 1.0f);
@@ -285,91 +274,25 @@ void Render()
 					if (cp < polyColor.size()) {
 						switch (polyColor[cp]) {
 						case 1:
-							Fill(clippedPoly[cp], redColor);
 							break;
 						case 2:
-							Fill(clippedPoly[cp], blueColor);
 							break;
 						case 3:
-							Fill(clippedPoly[cp], greenColor);
 							break;
 						case 4:
-							Fill(clippedPoly[cp], blackColor);
 							break;
 						case 5:
-							Fill(clippedPoly[cp], purpleColor);
 							break;
 						}
 					}
 					else
 					{
-						Fill(clippedPoly[cp], blueColor);
 					}
 				}
 			}
 		}
 	}
 	
-	// Triangulation et remplissage d'une partie du polygone
-	if (fillingPart) {
-		std::vector<glm::vec2> tmpPoints;
-		if (!clipPoly) {
-			for (int p = 0; p < polys[currentPoly].points.size(); p++)
-			{
-				tmpPoints.push_back(glm::vec2(polys[currentPoly].points[p].x, polys[currentPoly].points[p].y));
-			}
-		}
-		else
-		{
-			if(clippedPoly.size() != 0)
-			for (int p = 0; p < clippedPoly[clippedPoly.size()-1].points.size(); p++)
-			{
-				tmpPoints.push_back(glm::vec2(clippedPoly[clippedPoly.size() - 1].points[p].x, clippedPoly[clippedPoly.size() - 1].points[p].y));
-			}
-		}
-		triangles = triangulation(tmpPoints);
-		for (int t = 0; t < triangles.size(); t++) {
-			glBegin(GL_LINE_LOOP);
-			for (int i = 0; i < triangles[t].size(); i++) {
-				glVertex2i(triangles[t][i].x, triangles[t][i].y);
-			}
-			glEnd();
-		}
-
-		for (int t = 0; t < triangles.size(); t++) {
-			if (visible(glm::vec2(mousex, mousey), triangles[t][0], triangles[t][1])
-				&& visible(glm::vec2(mousex, mousey), triangles[t][1], triangles[t][2])
-				&& visible(glm::vec2(mousex, mousey), triangles[t][2], triangles[t][0])) {
-				_Point tmpPoint;
-				PointArray tmpPointArray;
-				tmpPointArray.points = std::vector<_Point>();
-				for (int i = 0; i < triangles[t].size(); i++) {
-					tmpPoint.x = triangles[t][i].x;
-					tmpPoint.y = triangles[t][i].y;
-					tmpPointArray.points.push_back(tmpPoint);
-				}
-
-				switch (polyColor[currentPoly]) {
-				case 1:
-					Fill(tmpPointArray, redColor);
-					break;
-				case 2:
-					Fill(tmpPointArray, blueColor);
-					break;
-				case 3:
-					Fill(tmpPointArray, greenColor);
-					break;
-				case 4:
-					Fill(tmpPointArray, blackColor);
-					break;
-				case 5:
-					Fill(tmpPointArray, purpleColor);
-					break;
-				}
-				break;
-			}
-		}
-	}
 
 	//Affiche les crédits
 	if (showCredits) {
@@ -490,21 +413,6 @@ void UpdateClipping(PointArray poly, PointArray win) {
 		f.push_back(glm::vec2(win.points[i].x, win.points[i].y)); //filling windowarray
 	}
 
-	r = maskInWindow(s, f);
-
-	for (int j = 0; j < r.size(); j++) {
-		_Point tmpPoint;
-		PointArray tmpPointArray;
-		tmpPointArray.points = std::vector<_Point>();
-		for (int i = 0; i < r[j].size(); i++) {
-			tmpPoint.x = r[j][i].x;
-			tmpPoint.y = r[j][i].y;
-			tmpPointArray.points.push_back(tmpPoint);
-			//glVertex2i(s[i].x, s[i].y);
-			
-		}
-		clippedPoly.push_back(tmpPointArray);
-	}
 	for (int i = 0; i < r.size(); i++) {
 		
 	}

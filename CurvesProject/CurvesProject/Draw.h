@@ -1,6 +1,21 @@
 #pragma once
 
-#include "Filling.h"
+typedef GLfloat color[3];
+
+struct _Point
+{
+	GLint x, y;
+};
+
+#include <vector>
+using std::vector;
+
+class PointArray
+{
+public:
+	vector<_Point> points;
+};
+
 
 void Render();
 
@@ -22,5 +37,3 @@ void drawCircle(GLfloat x, GLfloat y, GLfloat radius);
 void drawText(int x, int y, char *string, void *font);
 
 void DrawCircle(float cx, float cy, float r, int numberOfSegments);
-
-void UpdateClipping(PointArray poly, PointArray win);
