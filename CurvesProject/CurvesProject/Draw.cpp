@@ -15,8 +15,6 @@ using namespace std;
 
 // Pour les tableaux
 #include <vector>
-using std::vector;
-
 
 // Enregistre les coordonnées de la souris
 GLint mousex;
@@ -31,45 +29,28 @@ int indexPolyMode=3;
 int mode; // 1 = Poly
 bool modifying = false;
 int indexOfModifyingPoly = 0;
-int indexOfModifyingWin = 0;
 int indexOfModifyingPoint = 0;
 int modifyingMode = 0;
-// Switch pour savoir si on coupe ou non et si on rempli ou non
-bool fillPoly = false;
-bool clipPoly = false;
-bool fillingPart = false;
 
 bool leftButtonPressed = false;
 
 // Tableaux de points pour les formes à l'écran
 vector<PointArray> polys;
 int currentPoly = 0;
-vector<PointArray> wins;
-int currentWin = 0;
-vector<PointArray> clippedPoly;
-std::vector<std::vector<glm::vec2>> triangles;
+
+vector<PointArray> controlPoints;
 
 //Couleur selectionnée pour les formes
 vector<int>polyColor = { 2 };
-vector<int>winColor = { 1 };
 
 float x1, x2, x3, x4, y5, y2, y3, y4;
-
 bool pointSelected = false;
-
 bool showCredits;
 
-// Structure du cercle
-struct Circle
-{
-	GLint x, y;
-	GLfloat radius;
-};
+_Point currentParameterSpace = { 0, 1 };
 
-// On crée un objet cercle
-Circle circle;
-
-int drawCircleMode = 0;
+// Pas
+int step = 1;
 
 // Dimmension du repère de la fenêtre
 int hmax = 800, vmax = 600, hmin=0, vmin=0;
@@ -94,8 +75,9 @@ void Initialize()
 
 	PointArray firstPoly;
 	polys.push_back(firstPoly);
-	PointArray firstWin;
-	wins.push_back(firstWin);
+
+	PointArray firstPoly2;
+	controlPoints.push_back(firstPoly2);
 }
 
 // Rendu des formes dans la fenêtre
@@ -105,192 +87,100 @@ void Render()
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// On trace le poly en fonction du mode de traçage choisi
-	if (!clipPoly) {
-		switch (indexPolyMode) {
-		case 1:
-			for (int p = 0; p < polys.size(); p++)
-			{
-				// On choisi la couleur du poly
-				switch (polyColor[p]) {
-				case 1:
-					glColor3fv(redColor);
-					break;
-				case 2:
-					glColor3fv(blueColor);
-					break;
-				case 3:
-					glColor3fv(greenColor);
-					break;
-				case 4:
-					glColor3fv(blackColor);
-					break;
-				case 5:
-					glColor3fv(purpleColor);
-					break;
-				}
-				glBegin(GL_POINTS);
-				for (int i = 0; i < polys[p].points.size(); i++) {
-					glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
-				}
-				glEnd();
+	switch (indexPolyMode) {
+	case 1:
+		for (int p = 0; p < polys.size(); p++)
+		{
+			// On choisi la couleur du poly
+			switch (polyColor[p]) {
+			case 1:
+				glColor3fv(redColor);
+				break;
+			case 2:
+				glColor3fv(blueColor);
+				break;
+			case 3:
+				glColor3fv(greenColor);
+				break;
+			case 4:
+				glColor3fv(blackColor);
+				break;
+			case 5:
+				glColor3fv(purpleColor);
+				break;
 			}
-			break;
-		case 2:
-			for (int p = 0; p < polys.size(); p++)
-			{
-				// On choisi la couleur du poly
-				switch (polyColor[p]) {
-				case 1:
-					glColor3fv(redColor);
-					break;
-				case 2:
-					glColor3fv(blueColor);
-					break;
-				case 3:
-					glColor3fv(greenColor);
-					break;
-				case 4:
-					glColor3fv(blackColor);
-					break;
-				case 5:
-					glColor3fv(purpleColor);
-					break;
-				}
-				glBegin(GL_LINE_STRIP);
-				for (int i = 0; i < polys[p].points.size(); i++) {
-					glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
-				}
-				glEnd();
+			glBegin(GL_POINTS);
+			for (int i = 0; i < polys[p].points.size(); i++) {
+				glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
 			}
 			glEnd();
-			break;
-		case 3:
-			for (int p = 0; p < polys.size(); p++)
-			{
-				// On choisi la couleur du poly
-				switch (polyColor[p]) {
-				case 1:
-					glColor3fv(redColor);
-					break;
-				case 2:
-					glColor3fv(blueColor);
-					break;
-				case 3:
-					glColor3fv(greenColor);
-					break;
-				case 4:
-					glColor3fv(blackColor);
-					break;
-				case 5:
-					glColor3fv(purpleColor);
-					break;
-				}
-				glBegin(GL_LINE_LOOP);
-				for (int i = 0; i < polys[p].points.size(); i++) {
-					glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
-				}
-				glEnd();
+		}
+		break;
+	case 2:
+		for (int p = 0; p < polys.size(); p++)
+		{
+			// On choisi la couleur du poly
+			switch (polyColor[p]) {
+			case 1:
+				glColor3fv(redColor);
+				break;
+			case 2:
+				glColor3fv(blueColor);
+				break;
+			case 3:
+				glColor3fv(greenColor);
+				break;
+			case 4:
+				glColor3fv(blackColor);
+				break;
+			case 5:
+				glColor3fv(purpleColor);
+				break;
 			}
-			break;
-
-		default:
-			break;
-		}
-	}
-
-	// On trace la fenêtre
-	for (int w = 0; w < wins.size(); w++) {
-		// On choisi la couleur de la fenêtre
-		switch (winColor[w]) {
-		case 1:
-			glColor3fv(redColor);
-			break;
-		case 2:
-			glColor3fv(blueColor);
-			break;
-		case 3:
-			glColor3fv(greenColor);
-			break;
-		case 4:
-			glColor3fv(blackColor);
-			break;
-		case 5:
-			glColor3fv(purpleColor);
-			break;
-		}
-		glBegin(GL_LINE_LOOP);
-		for (int p = 0; p < wins[w].points.size(); p++) {
-			glVertex2i(wins[w].points[p].x, wins[w].points[p].y);
+			glBegin(GL_LINE_STRIP);
+			for (int i = 0; i < polys[p].points.size(); i++) {
+				glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
+			}
+			glEnd();
 		}
 		glEnd();
-	}
-
-
-	//Remplissage du polygon dessiné
-	if (!clipPoly && !fillingPart) {
-		if (fillPoly) {
-			for (int p = 0; p < polys.size(); p++)
-			{
-				if (polys[p].points.size() >= 3) {
-					switch (polyColor[p]) {
-					case 1:
-						break;
-					case 2:
-						break;
-					case 3:
-						break;
-					case 4:
-						break;
-					case 5:
-						break;
-					}
-				}
-			}
-		}
-	}
-
-	if (clipPoly) {
-		clippedPoly.clear();
-
-		// Dessin du polygon clippé
-		glColor3f(1.0f, 0.0f, 1.0f);
-		
-		// On relie tout les points de la forme clippée
-		for (int cp = 0; cp < clippedPoly.size(); cp++)
+		break;
+	case 3:
+		for (int p = 0; p < polys.size(); p++)
 		{
+			// On choisi la couleur du poly
+			switch (polyColor[p]) {
+			case 1:
+				glColor3fv(redColor);
+				break;
+			case 2:
+				glColor3fv(blueColor);
+				break;
+			case 3:
+				glColor3fv(greenColor);
+				break;
+			case 4:
+				glColor3fv(blackColor);
+				break;
+			case 5:
+				glColor3fv(purpleColor);
+				break;
+			}
 			glBegin(GL_LINE_LOOP);
-			for (int i = 0; i < clippedPoly[cp].points.size(); i++) {
-				glVertex2i(clippedPoly[cp].points[i].x, clippedPoly[cp].points[i].y);//////////////////////////////////////////////
+			for (int i = 0; i < polys[p].points.size(); i++) {
+				glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
+			}
+			glEnd();
+			glBegin(GL_LINE_LOOP);
+			for (int i = 0; i < controlPoints[p].points.size(); i++) {
+				glVertex2i(controlPoints[p].points[i].x, controlPoints[p].points[i].y);
 			}
 			glEnd();
 		}
-		
+		break;
 
-		// Coloriage de la forme en fonction de la couleur choisie
-		if (fillPoly && !fillingPart) {
-			for (int cp = 0; cp < clippedPoly.size(); cp++)
-			{
-				if (clippedPoly[cp].points.size() >= 3) {
-					if (cp < polyColor.size()) {
-						switch (polyColor[cp]) {
-						case 1:
-							break;
-						case 2:
-							break;
-						case 3:
-							break;
-						case 4:
-							break;
-						case 5:
-							break;
-						}
-					}
-					else
-					{
-					}
-				}
-			}
-		}
+	default:
+		break;
 	}
 	
 
@@ -316,46 +206,27 @@ void mouse(int button, int state, int x, int y)
 		_Point tmpPoint;
 		tmpPoint.x = mousex;
 		tmpPoint.y = mousey;
+		_Point tmpPoint2;
+		tmpPoint2.x = mousex + 10;
+		tmpPoint2.y = mousey - 20;
 		if (mode == 1) {
 			polys[currentPoly].points.push_back(tmpPoint);
-		}else 
-			if(mode == 2)
-			{
-				wins[currentWin].points.push_back(tmpPoint);
-			}
-		if (drawCircleMode == 1) {
-			circle.x = mousex;
-			circle.y = mousey;
-			drawCircleMode++;
-		}
-		else
-		{
-			if(drawCircleMode == 2){
-				circle.radius = sqrt((mousex - circle.x)*(mousex - circle.x) 
-					+ (mousey - circle.y)*(mousey - circle.y));
-				drawCircleMode++;
-
-				std::cout << "ok";
-				DrawCircle(circle.x, circle.y, circle.radius, 40);
-				drawCircleMode = 0;
-			}
+			controlPoints[currentPoly].points.push_back(tmpPoint2);
 		}
 
-		//std::cout << poly.points.size();
 
 		leftButtonPressed = false;
 	}
 
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 		indexOfModifyingPoly = 0;
-		indexOfModifyingWin = 0;
 		indexOfModifyingPoint = 0;
 		modifyingMode = 0;
 
-		for (int p = 0; p < polys.size(); p++)
+		for (int p = 0; p < controlPoints.size(); p++)
 		{
-			for (unsigned int i = 0; i < polys[p].points.size(); i++) {
-				if (sqrt((x - polys[p].points[i].x)*(x - polys[p].points[i].x) + (y - polys[p].points[i].y)*(y - polys[p].points[i].y)) < 15) {
+			for (unsigned int i = 0; i < controlPoints[p].points.size(); i++) {
+				if (sqrt((x - controlPoints[p].points[i].x)*(x - controlPoints[p].points[i].x) + (y - controlPoints[p].points[i].y)*(y - controlPoints[p].points[i].y)) < 15) {
 					indexOfModifyingPoly = p;
 					indexOfModifyingPoint = i;
 					modifyingMode = 1;
@@ -366,20 +237,6 @@ void mouse(int button, int state, int x, int y)
 			if (indexOfModifyingPoly != 0)
 				break;
 		}
-		for (int w = 0; w < wins.size(); w++)
-		{
-			for (unsigned int i = 0; i < wins[w].points.size(); i++) {
-				if (sqrt((x - wins[w].points[i].x)*(x - wins[w].points[i].x) + (y - wins[w].points[i].y)*(y - wins[w].points[i].y)) < 15) {
-					indexOfModifyingWin = w;
-					indexOfModifyingPoint = i;
-					modifyingMode = 2;
-					leftButtonPressed = true;
-					break;
-				}
-			}
-			if (indexOfModifyingWin != 0)
-				break;
-		}
 	}
 
 	glutPostRedisplay();
@@ -388,34 +245,11 @@ void mouse(int button, int state, int x, int y)
 void mouseMotion(int x, int y) {
 	if (modifying && leftButtonPressed) {
 		if (modifyingMode == 1) {
-			polys[indexOfModifyingPoly].points[indexOfModifyingPoint].x = x;
-			polys[indexOfModifyingPoly].points[indexOfModifyingPoint].y = y;
-		}
-		else if (modifyingMode == 2) {
-			wins[indexOfModifyingWin].points[indexOfModifyingPoint].x = x;
-			wins[indexOfModifyingWin].points[indexOfModifyingPoint].y = y;
+			controlPoints[indexOfModifyingPoly].points[indexOfModifyingPoint].x = x;
+			controlPoints[indexOfModifyingPoly].points[indexOfModifyingPoint].y = y;
 		}
 	}
 	glutPostRedisplay();
-}
-
-// Fonction de mise à jour de la liste de polygons clippés
-void UpdateClipping(PointArray poly, PointArray win) {
-	// On défini une structure pour passer les fenêtres et une pour les polygones
-	std::vector<glm::vec2> s = std::vector<glm::vec2>();
-	std::vector<glm::vec2> f = std::vector<glm::vec2>();
-	auto r = std::vector<std::vector<glm::vec2>>();
-
-	for (unsigned int i = 0; i < poly.points.size(); i++) {
-		s.push_back(glm::vec2(poly.points[i].x, poly.points[i].y)); //filling shape array
-	}
-	for (unsigned int i = 0; i < win.points.size(); i++) {
-		f.push_back(glm::vec2(win.points[i].x, win.points[i].y)); //filling windowarray
-	}
-
-	for (int i = 0; i < r.size(); i++) {
-		
-	}
 }
 
 // Procédés appelés au clavier
@@ -440,34 +274,12 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 		break;
 	// On zoom avec le + du pavé numérique
 	case '+':
-		// Modification des coordonées du repère
-		hmax -= 50;
-		vmax -= 50;
-		hmin += 50;
-		vmin += 50;
-		// Réécriture de la matrice de projection (camera, != model view (transformation des objets)
-		glMatrixMode(GL_PROJECTION);
-		// Remplace la matrice actuelle par la matrice identité (1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1)
-		glLoadIdentity();
-		// Défini les coordonées des points gauche, droite, bas, haut
-		gluOrtho2D(hmin, (GLdouble)hmax,
-			(GLdouble)vmax, vmin);
+		step += 1;
 		break;
 
 	// On dé-zoom avec le - du pavé numérique
 	case '-':
-		// Modification des coordonées du repère
-		hmax += 50;
-		vmax += 50;
-		hmin -= 50;
-		vmin -= 50;
-		// Réécriture de la matrice de projection (camera, != model view (transformation des objets)
-		glMatrixMode(GL_PROJECTION);
-		// Remplace la matrice actuelle par la matrice identité (1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1)
-		glLoadIdentity();
-		// Défini les coordonées des points gauche, droite, bas, haut
-		gluOrtho2D(hmin, (GLdouble)hmax,
-			(GLdouble)vmax, vmin);
+		step -= 1;
 		break;
 
 	default:
@@ -480,35 +292,10 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 // Fonction de menu principal
 void processMenuEvents(int option) {
 	switch (option) {
-	// Bouton qui permet de quitter l'application
+		// Bouton qui permet de quitter l'application
 	case 0:
 		glutDestroyWindow(Win);
 		exit(0);
-		break;
-	case 1:
-		if (wins.size() != 0) {
-			if (wins[currentWin].points.size() > 3) {
-				PointArray tmpWin;
-				wins.push_back(tmpWin);
-				winColor.push_back(1);
-				currentWin++;
-			}
-			else
-			{
-				wins[currentWin].points.clear();
-			}
-		}
-		mode = 2;
-		drawCircleMode = 0;
-		clippedPoly.clear();
-		break;
-	case 2:
-		clipPoly = !clipPoly;
-		break;
-
-	// Permet de choisir entre remplir ou non la forme
-	case 3:
-		fillPoly = !fillPoly;
 		break;
 	}
 	modifying = false;
@@ -517,19 +304,19 @@ void processMenuEvents(int option) {
 	glutPostRedisplay();
 }
 
+void prop_menu(int option) {
+	switch (option) {
+	case 1:
+		break;
+	case 2:
+			break;
+	}
+	modifying = false;
+	glutPostRedisplay();
+}
+
 // Fonction du menu qui permet de changer la couleur de la forme dessinée
 void colors_menu(int option) {
-	if (mode == 2) {
-		if (winColor.size() != 0) {
-			winColor[currentWin] = option;
-		}
-		else
-		{
-			winColor.push_back(option);
-		}
-	}
-	else
-	{
 		if (polyColor.size() != 0) {
 			polyColor[currentPoly] = option;
 		}
@@ -537,60 +324,31 @@ void colors_menu(int option) {
 		{
 			polyColor.push_back(option);
 		}
-	}
 	// Demande de le redessin de la fenêtre
 	glutPostRedisplay();
 }
 
 // Fonction du menu qui permet de changer la nature de la forme dessinée
 void polyCut_menu(int option) {
-
-	switch (option) {
-	case 1:
-		drawCircleMode = 0;
-		break;
-	case 2:
-		drawCircleMode = 1;
-		break;
-	}
-	if (drawCircleMode == 1)
-		mode = 0;
-	else
-		mode = 1;
-	clippedPoly.clear();
+	mode = 1;
 
 	if (polys.size() != 0) {
 		if (polys[currentPoly].points.size() > 3) {
 			PointArray tmpPoly;
 			polys.push_back(tmpPoly);
+			PointArray tmpPoly2;
+			controlPoints.push_back(tmpPoly2);
 			polyColor.push_back(2);
 			currentPoly++;
 		}
 		else
 		{
 			polys[currentPoly].points.clear();
+			controlPoints[currentPoly].points.clear();
 		}
 	}
-	
-	//std::cout << polys.size();
 
 	modifying = false;
-
-	glutPostRedisplay();
-}
-
-void render_menu(int option) {
-	switch (option) {
-	case 1:
-		indexPolyMode = 1;
-		break;
-	case 2:
-		indexPolyMode = 2;
-		break;
-	case 3:
-		indexPolyMode = 3;
-		break;
-	}
 
 	glutPostRedisplay();
 }
@@ -603,23 +361,12 @@ void option_menu(int option) {
 		modifying = !modifying;
 		mode = 0;
 		break;
-	case 2:
-		fillingPart = !fillingPart;
-		mode = 0;
-		break;
 	case 3:
 		polys.clear();
 		currentPoly = 0;
-		wins.clear();
-		currentWin = 0;
 		Initialize();
-		clippedPoly.clear();
 		indexPolyMode = 3;
-		drawCircleMode = 0;
 		mode = 0;
-		clipPoly = false;
-		fillPoly = false;
-		fillingPart = false;
 		break;
 	// Affiche les crédits
 	case 4:
@@ -638,7 +385,7 @@ void initMenu() {
 	menu = glutCreateMenu(processMenuEvents);
 
 	// Liste des index des sous menus
-	GLint colorsMenu, polyCutMenu, winLayMenu, winWingMenu, fillMenu, renderMenu, optionMenu;
+	GLint colorsMenu, polyCutMenu, propMenu, optionMenu;
 
 	// Menu pour changer la couleur
 	colorsMenu = glutCreateMenu(colors_menu);
@@ -650,27 +397,21 @@ void initMenu() {
 	glutAddMenuEntry("Violet", 5);
 
 	polyCutMenu = glutCreateMenu(polyCut_menu);
-	glutAddMenuEntry("Polygon", 1);
-	glutAddMenuEntry("Cercle", 2);
+	glutAddMenuEntry("Courbe de Bezier", 1);
 
-	renderMenu = glutCreateMenu(render_menu);
-	glutAddMenuEntry("Point", 1);
-	glutAddMenuEntry("Ligne", 2);
-	glutAddMenuEntry("Polygone", 3);
+	propMenu = glutCreateMenu(prop_menu);
+	glutAddMenuEntry("Espace de paramétrage", 1);
+	glutAddMenuEntry("Pas", 2);
 
 	optionMenu = glutCreateMenu(option_menu);
 	glutAddMenuEntry("Modifier", 1);
-	glutAddMenuEntry("Remplir une partie", 2);
 	glutAddMenuEntry("Remise à zero", 3);
 	glutAddMenuEntry("Credits", 4);
 
 	glutCreateMenu(processMenuEvents);
 	glutAddSubMenu("Colours", colorsMenu);
-	glutAddSubMenu("Créer une forme", polyCutMenu);
-	glutAddMenuEntry("Dessiner une fenêtre", 1);
-	glutAddMenuEntry("Découper les formes", 2);
-	glutAddMenuEntry("Remplir les formes", 3);
-	glutAddSubMenu("Type de rendu", renderMenu);
+	glutAddSubMenu("Créer une courbe", polyCutMenu);
+	glutAddSubMenu("Propriétés", propMenu);
 	glutAddSubMenu("Options", optionMenu);
 	glutAddMenuEntry("Quitter", 0);
 
@@ -692,43 +433,4 @@ void drawText(int x, int y, char *string, void *font)
 	for (int i = 0; i < len; i++) {
 		glutBitmapCharacter(font, string[i]);
 	}
-}
-
-// Dessin du cercle
-void DrawCircle(float cx, float cy, float r, int numberOfSegments)
-{
-	// Angle entre deux points (2pi/x)
-	float theta = 2 * 3.1415926 / float(numberOfSegments);
-	// On calcule les valeurs d'augmentation de x et y pour cet angle
-	float c = cosf(theta);
-	float s = sinf(theta);
-	//Pour l'angle 0
-	float x = r;
-	float y = 0;
-
-	// Les points seront reliés par une ligne
-	glBegin(GL_LINE_LOOP);
-	// Nettoyage de la liste
-	polys[currentPoly].points = std::vector<_Point>();
-
-	// Placement d'autant de points que de segments demandés
-	for (int i = 0; i < numberOfSegments; i++)
-	{
-		// Création d'un nouveau point
-		_Point tempP = _Point();
-		// Placement du point sur le cercle et en fonction du centre du cercle
-		tempP.x = x + cx;
-		tempP.y = y + cy;
-		 // Insertion du point dessiné dans dans la liste
-		polys[currentPoly].points.push_back(tempP);
-
-		//Modification des coordonées
-		// Sauvergarde du x
-		float tmpx = x;
-		// x se déplace de droite à gauche (puis inverse)
-		x = c * x - s * y;
-		// y se déplace de haut en base (puis inverse)
-		y = s * tmpx + c * y;
-	}
-	glEnd();
 }

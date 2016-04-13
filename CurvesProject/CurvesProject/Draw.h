@@ -16,7 +16,6 @@ public:
 	vector<_Point> points;
 };
 
-
 void Render();
 
 void initMenu();
@@ -31,9 +30,5 @@ void keyboard(unsigned char key, int xmouse, int ymouse);
 
 void _CreateWindow();
 
-void drawCircle(GLfloat x, GLfloat y, GLfloat radius);
-
 // Fonction qui permet d'afficher du texte
 void drawText(int x, int y, char *string, void *font);
-
-void DrawCircle(float cx, float cy, float r, int numberOfSegments);
