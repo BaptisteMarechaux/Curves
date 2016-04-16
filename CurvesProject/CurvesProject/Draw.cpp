@@ -50,7 +50,7 @@ bool showCredits;
 _Point currentParameterSpace = { 0, 1 };
 
 // Pas
-int step = 1;
+int nStep = 1;
 
 // Dimmension du repère de la fenêtre
 int hmax = 800, vmax = 600, hmin=0, vmin=0;
@@ -61,6 +61,12 @@ color blueColor = { 0.0f, 0.0f, 1.0f };
 color greenColor = { 0.0f, 1.0f, 0.0f };
 color blackColor = { 0.0f, 0.0f, 0.0f };
 color purpleColor = { 0.75f, 0.0f, 0.75f };
+
+Bezier bezier = Bezier();
+
+//B Curve ArrayPoint
+vector<glm::vec2> bPoints;
+vector<glm::vec2> casPoints = vector<glm::vec2>();
 
 void Initialize() 
 {
@@ -113,6 +119,11 @@ void Render()
 			for (int i = 0; i < polys[p].points.size(); i++) {
 				glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
 			}
+			/*
+			for (int i = 0; i < bPoints.size(); i++) {
+				glVertex2i(bPoints[i].x, bPoints[i].y);
+			}
+			*/
 			glEnd();
 		}
 		break;
@@ -141,6 +152,9 @@ void Render()
 			for (int i = 0; i < polys[p].points.size(); i++) {
 				glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
 			}
+			for (int i = 0; i < bPoints.size(); i++) {
+				glVertex2i(bPoints[i].x, bPoints[i].y);
+			}
 			glEnd();
 		}
 		glEnd();
@@ -166,15 +180,33 @@ void Render()
 				glColor3fv(purpleColor);
 				break;
 			}
+			/*
 			glBegin(GL_LINE_LOOP);
 			for (int i = 0; i < polys[p].points.size(); i++) {
 				glVertex2i(polys[p].points[i].x, polys[p].points[i].y);
 			}
 			glEnd();
+			*/
 			glBegin(GL_LINE_LOOP);
+			casPoints = vector<glm::vec2>(controlPoints[p].points.size(), vec2(0, 0));
 			for (int i = 0; i < controlPoints[p].points.size(); i++) {
 				glVertex2i(controlPoints[p].points[i].x, controlPoints[p].points[i].y);
+				
 			}
+
+			/*
+			if (controlPoints[p].points.size() >= 4) {
+				for (int i = 0; i < casPoints.size(); i++) {
+					glVertex2i(casPoints[i].x, casPoints[i].y);
+				}
+			}
+			*/
+			
+			for (int i = 0; i < bPoints.size(); i++) {
+				glVertex2i(bPoints[i].x, bPoints[i].y);
+			}
+			
+
 			glEnd();
 		}
 		break;
@@ -212,6 +244,17 @@ void mouse(int button, int state, int x, int y)
 		if (mode == 1) {
 			polys[currentPoly].points.push_back(tmpPoint);
 			controlPoints[currentPoly].points.push_back(tmpPoint2);
+			if (controlPoints[currentPoly].points.size() == 4) {
+				Bezier b = Bezier();
+				
+				glm::vec2 v = glm::vec2(0, 0);
+				bPoints = b.Curve(0.05,0, 1, glm::vec2(controlPoints[currentPoly].points[0].x,controlPoints[currentPoly].points[0].y),
+					glm::vec2(controlPoints[currentPoly].points[1].x, controlPoints[currentPoly].points[1].y),
+					glm::vec2(controlPoints[currentPoly].points[2].x, controlPoints[currentPoly].points[2].y),
+					glm::vec2(controlPoints[currentPoly].points[3].x, controlPoints[currentPoly].points[3].y)
+				);
+			}
+
 		}
 
 
@@ -274,12 +317,12 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 		break;
 	// On zoom avec le + du pavé numérique
 	case '+':
-		step += 1;
+		nStep += 1;
 		break;
 
 	// On dé-zoom avec le - du pavé numérique
 	case '-':
-		step -= 1;
+		nStep -= 1;
 		break;
 
 	default:
