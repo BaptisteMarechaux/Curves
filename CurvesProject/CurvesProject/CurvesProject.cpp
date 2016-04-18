@@ -39,6 +39,7 @@ int main(int argc, char* argv[])
 	glutMouseFunc(mouse);
 	glutMotionFunc(mouseMotion);
 	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(specialInput);
 
 	Initialize();
 

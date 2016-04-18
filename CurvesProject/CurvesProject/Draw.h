@@ -30,6 +30,8 @@ void mouseMotion(int x, int y);
 
 void keyboard(unsigned char key, int xmouse, int ymouse);
 
+void specialInput(int key, int x, int y);
+
 void _CreateWindow();
 
 // Fonction qui permet d'afficher du texte
