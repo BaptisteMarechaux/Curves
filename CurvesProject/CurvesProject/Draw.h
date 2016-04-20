@@ -2,20 +2,21 @@
 
 typedef GLfloat color[3];
 
-struct _Point
-{
-	GLint x, y;
-};
-
 #include <vector>
 #include "Bezier.h"
 #include "libs\glm\glm.hpp"
+
 using std::vector;
 
-class PointArray
-{
-public:
-	vector<_Point> points;
+class CurveObject {
+	public:
+		vector<glm::vec2> controlPoints;
+		vector<glm::vec2> curvePoints;
+
+		CurveObject() {
+			controlPoints = vector<glm::vec2>();
+			curvePoints = vector<glm::vec2>();
+		}
 };
 
 void Render();
