@@ -67,9 +67,20 @@ Bezier bezier = Bezier();
 //B Curve ArrayPoint
 vector<glm::vec2> bPoints;
 vector<glm::vec2> casPoints = vector<glm::vec2>();
+int t;
+float tMatrix[16] = { 1,0,0,10, 0,1,0,10, 0,0,1,10, 0,0,0,10 };
+float ntMatrix[16] = { 1,0,0,-10, 0,1,0,-10, 0,0,1,-10, 0,0,0,-10 };
+float rMatrix[16] = { cos(10),-sin(10),0,0, sin(10),cos(10),0,0, 0,0,1,0, 0,0,0,1 };
+float nrMatrix[16] = { cos(10),-sin(10),0,0, sin(10),cos(10),0,0, 0,0,1,0, 0,0,0,1 };
+float sMatrix[16] = { 1.1,0,0,0, 0,1.1,0,0, 0,0,1.1,0, 0,0,0,0 };
+float nsMatrix[16] = { 0.9,0,0,0, 0,0.9,0,0, 0,0,0.9,0, 0,0,0,0 };
+float cMatrix[16] = { 1,0,0,0, 0.5f,1,0,0, 0,0,1,0, 0,0,0,0 };
+
+int modifierType = 0;
 
 void Initialize() 
 {
+
 	glClearColor(1.0, 0.984, 0.906, 0.961);
 	glColor3f(0.0f, 0.0f, 1.0f);
 	glPointSize(2.0);			
@@ -187,10 +198,10 @@ void Render()
 			}
 			glEnd();
 			*/
-			glBegin(GL_LINE_STRIP);
+			glBegin(GL_LINE_LOOP);
 			casPoints = vector<glm::vec2>(controlPoints[p].points.size(), vec2(0, 0));
 			for (int i = 0; i < controlPoints[p].points.size(); i++) {
-				//glVertex2i(controlPoints[p].points[i].x, controlPoints[p].points[i].y);
+				glVertex2i(controlPoints[p].points[i].x, controlPoints[p].points[i].y);
 				
 			}
 
@@ -214,7 +225,18 @@ void Render()
 	default:
 		break;
 	}
-	
+
+
+	if (controlPoints[currentPoly].points.size() >= 4) {
+		Bezier b = Bezier();
+
+		glm::vec2 v = glm::vec2(0, 0);
+		bPoints = b.Curve(0.05, 0, 1, glm::vec2(controlPoints[currentPoly].points[0].x, controlPoints[currentPoly].points[0].y),
+			glm::vec2(controlPoints[currentPoly].points[1].x, controlPoints[currentPoly].points[1].y),
+			glm::vec2(controlPoints[currentPoly].points[2].x, controlPoints[currentPoly].points[2].y),
+			glm::vec2(controlPoints[currentPoly].points[3].x, controlPoints[currentPoly].points[3].y)
+			);
+	}
 
 	//Affiche les crédits
 	if (showCredits) {
@@ -244,29 +266,6 @@ void mouse(int button, int state, int x, int y)
 		if (mode == 1) {
 			polys[currentPoly].points.push_back(tmpPoint);
 			controlPoints[currentPoly].points.push_back(tmpPoint2);
-			if (controlPoints[currentPoly].points.size() == 4) {
-				Bezier b = Bezier();
-				
-				glm::vec2 v = glm::vec2(0, 0);
-				bPoints = vector<glm::vec2>();
-				for (int i = 0; i < controlPoints[currentPoly].points.size(); i++) {
-					bPoints.push_back(vec2(controlPoints[currentPoly].points[i].x, controlPoints[currentPoly].points[i].y));
-				}
-				bPoints = b.Raccord(2, bPoints, 0, 1, 0.05);
-				bPoints = b.CasteljauBezier(bPoints, 0.05, 0, 1);
-				/*bPoints = b.Curve(0.05,0, 1, glm::vec2(controlPoints[currentPoly].points[0].x,controlPoints[currentPoly].points[0].y),
-					glm::vec2(controlPoints[currentPoly].points[1].x, controlPoints[currentPoly].points[1].y),
-					glm::vec2(controlPoints[currentPoly].points[2].x, controlPoints[currentPoly].points[2].y),
-					glm::vec2(controlPoints[currentPoly].points[3].x, controlPoints[currentPoly].points[3].y)
-				);*/
-			}
-			else if(controlPoints[currentPoly].points.size() == 5 )
-			{
-				Bezier b = Bezier();
-				bPoints.push_back(vec2(controlPoints[currentPoly].points[controlPoints[currentPoly].points.size()-1].x, controlPoints[currentPoly].points[controlPoints[currentPoly].points.size() - 1].y));
-				bPoints = b.CasteljauBezier(bPoints, 0.05, 0, 1);
-			}
-
 		}
 
 
@@ -336,7 +335,97 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 	case '-':
 		nStep -= 1;
 		break;
+	default:
+		break;
+	}
+	// Demande de le redessin de la fenêtre
+	glutPostRedisplay();
+}
 
+// Procédés appelés au clavier
+void specialInput(int key, int x, int y)
+{
+	int _x = 0;
+	int _y = 0;
+
+	// En fonction de la touche
+	switch (key) {
+	case GLUT_KEY_UP:    // key up
+		switch (modifierType)
+		{
+		case 1:
+			for (size_t i = 0; i < controlPoints[currentPoly].points.size(); i++)
+			{
+				_y = controlPoints[currentPoly].points[i].y;
+				controlPoints[currentPoly].points[i].y = ntMatrix[4] * _y + ntMatrix[5] * _y + ntMatrix[6] * _y + ntMatrix[7];
+			}
+			break;
+		}
+		break;
+	case GLUT_KEY_DOWN:    // key down
+		switch (modifierType)
+		{
+		case 1:
+			for (size_t i = 0; i < controlPoints[currentPoly].points.size(); i++)
+			{
+				_y = controlPoints[currentPoly].points[i].y;
+				controlPoints[currentPoly].points[i].y = tMatrix[4] * _y + tMatrix[5] * _y + tMatrix[6] * _y + tMatrix[7];
+			}
+			break;
+		}
+	case GLUT_KEY_RIGHT:    // key right
+		switch (modifierType)
+		{
+		case 1:
+			for (size_t i = 0; i < controlPoints[currentPoly].points.size(); i++)
+			{
+				_x = controlPoints[currentPoly].points[i].x;
+				controlPoints[currentPoly].points[i].x = tMatrix[0] * _x + tMatrix[1] * _x + tMatrix[2] * _x + tMatrix[3];
+
+			}
+			break;
+		case 3:
+			for (size_t i = 0; i < controlPoints[currentPoly].points.size(); i++)
+			{
+				_x = controlPoints[currentPoly].points[i].x;
+				controlPoints[currentPoly].points[i].x = sMatrix[0] * _x + sMatrix[1] * _x + sMatrix[2] * _x + sMatrix[3];
+				_y = controlPoints[currentPoly].points[i].y;
+				controlPoints[currentPoly].points[i].y = sMatrix[4] * _y + sMatrix[5] * _y + sMatrix[6] * _y + sMatrix[7];
+			}
+			break;
+		}
+		break;
+	case GLUT_KEY_LEFT:    // key left
+		switch (modifierType)
+		{
+		case 1:
+			for (size_t i = 0; i < controlPoints[currentPoly].points.size(); i++)
+			{
+				_x = controlPoints[currentPoly].points[i].x;
+				controlPoints[currentPoly].points[i].x = ntMatrix[0] * _x + ntMatrix[1] * _x + ntMatrix[2] * _x + ntMatrix[3];
+
+			}
+			break;
+		case 2:
+			for (size_t i = 0; i < controlPoints[currentPoly].points.size(); i++)
+			{
+				/*_x = controlPoints[currentPoly].points[i].x;
+				controlPoints[currentPoly].points[i].x = nrMatrix[0] * _x + nrMatrix[1] * _x + nrMatrix[2] * _x + nrMatrix[3];
+				_y = controlPoints[currentPoly].points[i].y;
+				controlPoints[currentPoly].points[i].y = nrMatrix[4] * _y + nrMatrix[5] * _y + nrMatrix[6] * _y + nrMatrix[7];*/
+			}
+			break;
+		case 3:
+			for (size_t i = 0; i < controlPoints[currentPoly].points.size(); i++)
+			{
+				_x = controlPoints[currentPoly].points[i].x;
+				controlPoints[currentPoly].points[i].x = nsMatrix[0] * _x + nsMatrix[1] * _x + nsMatrix[2] * _x + nsMatrix[3];
+				_y = controlPoints[currentPoly].points[i].y;
+				controlPoints[currentPoly].points[i].y = nsMatrix[4] * _y + nsMatrix[5] * _y + nsMatrix[6] * _y + nsMatrix[7];
+			}
+			break;
+		}
+		break;
 	default:
 		break;
 	}
@@ -356,6 +445,24 @@ void processMenuEvents(int option) {
 	modifying = false;
 
 	// Demande de le redessin de la fenêtre
+	glutPostRedisplay();
+}
+
+void mod_menu(int option) {
+	switch (option) {
+	case 0:
+		modifierType = 1;
+		break;
+	case 1:
+		modifierType = 2;
+		break;
+	case 2:
+		modifierType = 3;
+		break;
+	case 3:
+		modifierType = 4;
+		break;
+	}
 	glutPostRedisplay();
 }
 
@@ -440,7 +547,7 @@ void initMenu() {
 	menu = glutCreateMenu(processMenuEvents);
 
 	// Liste des index des sous menus
-	GLint colorsMenu, polyCutMenu, propMenu, optionMenu;
+	GLint colorsMenu, polyCutMenu, modMenu, propMenu, optionMenu;
 
 	// Menu pour changer la couleur
 	colorsMenu = glutCreateMenu(colors_menu);
@@ -458,6 +565,12 @@ void initMenu() {
 	glutAddMenuEntry("Espace de paramétrage", 1);
 	glutAddMenuEntry("Pas", 2);
 
+	modMenu = glutCreateMenu(mod_menu);
+	glutAddMenuEntry("Translation", 0);
+	glutAddMenuEntry("Rotation", 1);
+	glutAddMenuEntry("Scale", 2);
+	glutAddMenuEntry("cisaillement", 3);
+
 	optionMenu = glutCreateMenu(option_menu);
 	glutAddMenuEntry("Modifier", 1);
 	glutAddMenuEntry("Remise à zero", 3);
@@ -466,6 +579,7 @@ void initMenu() {
 	glutCreateMenu(processMenuEvents);
 	glutAddSubMenu("Colours", colorsMenu);
 	glutAddSubMenu("Créer une courbe", polyCutMenu);
+	glutAddSubMenu("Modifier la courbe", modMenu);
 	glutAddSubMenu("Propriétés", propMenu);
 	glutAddSubMenu("Options", optionMenu);
 	glutAddMenuEntry("Quitter", 0);
