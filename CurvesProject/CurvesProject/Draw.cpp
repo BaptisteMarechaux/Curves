@@ -187,10 +187,10 @@ void Render()
 			}
 			glEnd();
 			*/
-			glBegin(GL_LINE_LOOP);
+			glBegin(GL_LINE_STRIP);
 			casPoints = vector<glm::vec2>(controlPoints[p].points.size(), vec2(0, 0));
 			for (int i = 0; i < controlPoints[p].points.size(); i++) {
-				glVertex2i(controlPoints[p].points[i].x, controlPoints[p].points[i].y);
+				//glVertex2i(controlPoints[p].points[i].x, controlPoints[p].points[i].y);
 				
 			}
 
@@ -248,11 +248,23 @@ void mouse(int button, int state, int x, int y)
 				Bezier b = Bezier();
 				
 				glm::vec2 v = glm::vec2(0, 0);
-				bPoints = b.Curve(0.05,0, 1, glm::vec2(controlPoints[currentPoly].points[0].x,controlPoints[currentPoly].points[0].y),
+				bPoints = vector<glm::vec2>();
+				for (int i = 0; i < controlPoints[currentPoly].points.size(); i++) {
+					bPoints.push_back(vec2(controlPoints[currentPoly].points[i].x, controlPoints[currentPoly].points[i].y));
+				}
+				bPoints = b.Raccord(2, bPoints, 0, 1, 0.05);
+				bPoints = b.CasteljauBezier(bPoints, 0.05, 0, 1);
+				/*bPoints = b.Curve(0.05,0, 1, glm::vec2(controlPoints[currentPoly].points[0].x,controlPoints[currentPoly].points[0].y),
 					glm::vec2(controlPoints[currentPoly].points[1].x, controlPoints[currentPoly].points[1].y),
 					glm::vec2(controlPoints[currentPoly].points[2].x, controlPoints[currentPoly].points[2].y),
 					glm::vec2(controlPoints[currentPoly].points[3].x, controlPoints[currentPoly].points[3].y)
-				);
+				);*/
+			}
+			else if(controlPoints[currentPoly].points.size() == 5 )
+			{
+				Bezier b = Bezier();
+				bPoints.push_back(vec2(controlPoints[currentPoly].points[controlPoints[currentPoly].points.size()-1].x, controlPoints[currentPoly].points[controlPoints[currentPoly].points.size() - 1].y));
+				bPoints = b.CasteljauBezier(bPoints, 0.05, 0, 1);
 			}
 
 		}
