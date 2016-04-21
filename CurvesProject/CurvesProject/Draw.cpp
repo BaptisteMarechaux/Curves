@@ -45,11 +45,12 @@ vector<int>polyColor = { 2 };
 float x1, x2, x3, x4, y5, y2, y3, y4;
 bool pointSelected = false;
 bool showCredits;
+bool showParam;
 
 glm::vec2 currentParameterSpace = { 0, 1 };
 
 // Pas
-int nStep = 1;
+int nStep = 20;
 
 // Dimmension du repère de la fenêtre
 int hmax = 800, vmax = 600, hmin=0, vmin=0;
@@ -61,7 +62,7 @@ color greenColor = { 0.0f, 1.0f, 0.0f };
 color blackColor = { 0.0f, 0.0f, 0.0f };
 color purpleColor = { 0.75f, 0.0f, 0.75f };
 
-Bezier bezier = Bezier();
+Bezier b = Bezier();
 
 vector<glm::vec2> casPoints = vector<glm::vec2>();
 
@@ -101,18 +102,16 @@ void Render()
 	// Nettoyage de la fenêtre
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	if (curves[currentCurve].controlPoints.size() >= 4) {
-		Bezier b = Bezier();
-
-		glm::vec2 v = glm::vec2(0, 0);
-		curves[currentCurve].curvePoints = b.CasteljauBezier(curves[currentCurve].controlPoints, 20, 0, 1);
-	}
-
 	// On trace le poly en fonction du mode de traçage choisi
 	switch (indexPolyMode) {
 	case 3:
 		for (int p = 0; p < curves.size(); p++)
 		{
+			if (curves[p].controlPoints.size() >= 4) {
+				glm::vec2 v = glm::vec2(0, 0);
+				curves[p].curvePoints = b.CasteljauBezier(curves[p].controlPoints, nStep, 0, 1);
+			}
+
 			// On choisi la couleur du poly
 			switch (polyColor[p]) {
 			case 1:
@@ -163,6 +162,10 @@ void Render()
 		drawText(10, 30, "Baptiste Marechaux & Julien Geiger", GLUT_BITMAP_9_BY_15);
 	}
 
+		glColor3f(0.25, 0.25, 0.25);
+		// Donne la position du texte, le texte et les caractéristiques de sa police
+		drawText(5, 15, "Vous pourrez rentrez l'espace de parametrage avec la console", GLUT_BITMAP_9_BY_15);
+
 	glFlush();
 }
 
@@ -180,6 +183,7 @@ void mouse(int button, int state, int x, int y)
 		tmpPoint.y = mousey;
 		if (mode == 1) {
 			curves[currentCurve].controlPoints.push_back(tmpPoint);
+			//curves[currentCurve].paramPoints.push_back()
 		}
 
 
@@ -247,7 +251,8 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 
 	// On dé-zoom avec le - du pavé numérique
 	case '-':
-		nStep -= 1;
+		if(nStep > 1)
+			nStep -= 1;
 		break;
 	default:
 		break;
@@ -425,9 +430,16 @@ void mod_menu(int option) {
 void prop_menu(int option) {
 	switch (option) {
 	case 1:
+		glutPostRedisplay();
+		curves[currentCurve].paramPoints.clear();
+		std::cout << "Entrez a, b, c" << std::endl;
+		int a, b, c;
+		cin >> a;
+		cin >> b;
+		cin >> c;
+		curves[currentCurve].paramPoints.push_back(b - a);
+		curves[currentCurve].paramPoints.push_back(c - b);
 		break;
-	case 2:
-			break;
 	}
 	modifying = false;
 	glutPostRedisplay();
@@ -449,8 +461,12 @@ void colors_menu(int option) {
 // Fonction du menu qui permet de changer la nature de la forme dessinée
 void polyMade_menu(int option) {
 	mode = 1;
-
-	switch (option) {
+	if (curves[currentCurve].paramPoints.size() < 2) {
+		curves[currentCurve].paramPoints.clear();
+		curves[currentCurve].paramPoints.push_back(1);
+		curves[currentCurve].paramPoints.push_back(1);
+	}
+		switch (option) {
 		// Nettoie la fenêtre et les structures
 	case 1:
 		if (curves.size() != 0) {
@@ -465,21 +481,40 @@ void polyMade_menu(int option) {
 				curves[currentCurve].controlPoints.clear();
 				curves[currentCurve].controlPoints.clear();
 			}
+			break;
 		}
-		break;
 	case 2:
-		if (1 == 1) {
-			Bezier b = Bezier();
-			CurveObject tmpPoly;
-			tmpPoly.controlPoints = b.Raccord(0, curves[currentCurve].controlPoints, 0, 1, 0.05);
-			curves.push_back(tmpPoly);
-			polyColor.push_back(2);
-			currentCurve++;
+		if (curves.size() != 0) {
+			if (curves[currentCurve].controlPoints.size() > 3) {
+				CurveObject tmpPoly;
+					tmpPoly.controlPoints = b.Raccord(0, curves[currentCurve].controlPoints, curves[currentCurve].paramPoints);
+				curves.push_back(tmpPoly);
+				polyColor.push_back(2);
+				currentCurve++;
+			}
 		}
 		break;
 	case 3:
+		if (curves.size() != 0) {
+			if (curves[currentCurve].controlPoints.size() > 3) {
+				CurveObject tmpPoly;
+					tmpPoly.controlPoints = b.Raccord(1, curves[currentCurve].controlPoints, curves[currentCurve].paramPoints);
+				curves.push_back(tmpPoly);
+				polyColor.push_back(2);
+				currentCurve++;
+			}
+		}
 		break;
 	case 4:
+		if (curves.size() != 0) {
+			if (curves[currentCurve].controlPoints.size() > 3) {
+				CurveObject tmpPoly;
+					tmpPoly.controlPoints = b.Raccord(2, curves[currentCurve].controlPoints, curves[currentCurve].paramPoints);
+				curves.push_back(tmpPoly);
+				polyColor.push_back(2);
+				currentCurve++;
+			}
+		}
 		break;
 	}
 
@@ -497,6 +532,11 @@ void option_menu(int option) {
 		mode = 0;
 		break;
 	case 3:
+		for (int p = 0; p < curves.size(); p++)
+		{
+			curves[p].controlPoints.clear();
+			curves[p].curvePoints.clear();
+		}
 		curves.clear();
 		currentCurve = 0;
 		Initialize();
@@ -539,7 +579,6 @@ void initMenu() {
 
 	propMenu = glutCreateMenu(prop_menu);
 	glutAddMenuEntry("Espace de paramétrage", 1);
-	glutAddMenuEntry("Pas", 2);
 
 	modMenu = glutCreateMenu(mod_menu);
 	glutAddMenuEntry("Translation", 0);

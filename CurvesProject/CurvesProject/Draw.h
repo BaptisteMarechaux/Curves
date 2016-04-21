@@ -12,6 +12,7 @@ class CurveObject {
 	public:
 		vector<glm::vec2> controlPoints;
 		vector<glm::vec2> curvePoints;
+		vector<int> paramPoints;
 
 		CurveObject() {
 			controlPoints = vector<glm::vec2>();

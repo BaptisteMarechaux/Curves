@@ -21,7 +21,8 @@ public:
 	std::vector<vec2> CasteljauBezier(std::vector<vec2> points, float step, float min, float max);
 
 	//Raccordements avec des niveau allant de 0 à 2 C0, C1, C2
-	std::vector<vec2> Raccord(int level, std::vector<vec2> points, float r0, float r1, float step);
+	//std::vector<vec2> Raccord(int level, std::vector<vec2> points, float r0, float r1, float step);
+	std::vector<vec2> Bezier::Raccord(int level, std::vector<vec2> points, std::vector<int> paramSpace);
 
 	std::vector<vec2> Spline(int level, std::vector<vec2> points, std::vector<float> nodalVec, float step);
 };
