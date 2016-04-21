@@ -131,6 +131,7 @@ std::vector<vec2> Bezier::CasteljauBezier(std::vector<vec2> points, float step, 
 	//vec2 tmp;
 	//newPoints = points;
 	//returnPoints = std::vector<vec2>();
+	step = (max - min) / step;
 	
 	for (float t = min; t <= max; t += step) {
 		getCasteljauPoint(points.size(), points, t);
@@ -165,4 +166,28 @@ std::vector<vec2> Bezier::Raccord(int level, std::vector<vec2> points, float r0,
 		break;
 	}
 	return returnPoints;
+}
+
+std::vector<vec2> Spline(int level, std::vector<vec2> points, std::vector<float> nodalVec, float step) {
+	std::vector<vec2> frags = std::vector<vec2>();
+
+	frags.push_back(points[0]);
+	//On va parcourir les points de la courbes sans avoir à couper le premier et le dernier segment
+	for (int i = 1; i < points.size() - 1; i++)
+	{
+		vec2 f(0.5 * (points[i + 1].x - points[i].x) , 0.5*(points[i + 1].y - points[i].y) );
+		frags.push_back(f);
+	}
+
+	//Faire un algo suivant
+
+	//prendre tous les segements un par un
+	//Si possible , en prendre 2 a la suite du premier
+	//Faire le cutting sur le 2e segement et le 3e segement
+		//Prendre un pourcentage du 2e segment et le lier au meme pourcentage sur le 3e segment
+		//Prendre le meme pourcentage sur la courbe obtenue pour avoir au total 4 points
+		//stocker ces 4 points en tant que 4 points sur lesquels effectuer un Bezier
+	//Recommencer à partir du segement suivant  jusqu'a ce qu'il en reste au moins 2
+
+	return frags;
 }

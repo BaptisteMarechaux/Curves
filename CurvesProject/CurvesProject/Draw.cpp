@@ -105,11 +105,7 @@ void Render()
 		Bezier b = Bezier();
 
 		glm::vec2 v = glm::vec2(0, 0);
-		curves[currentCurve].curvePoints = b.Curve(0.05, 0, 1, glm::vec2(curves[currentCurve].controlPoints[0].x, curves[currentCurve].controlPoints[0].y),
-			glm::vec2(curves[currentCurve].controlPoints[1].x, curves[currentCurve].controlPoints[1].y),
-			glm::vec2(curves[currentCurve].controlPoints[2].x, curves[currentCurve].controlPoints[2].y),
-			glm::vec2(curves[currentCurve].controlPoints[3].x, curves[currentCurve].controlPoints[3].y)
-			);
+		curves[currentCurve].curvePoints = b.CasteljauBezier(curves[currentCurve].controlPoints, 20, 0, 1);
 	}
 
 	// On trace le poly en fonction du mode de traçage choisi
