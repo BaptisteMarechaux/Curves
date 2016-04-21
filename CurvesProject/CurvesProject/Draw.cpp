@@ -68,11 +68,12 @@ vector<glm::vec2> casPoints = vector<glm::vec2>();
 
 float tMatrix[16] = { 1,0,0,10, 0,1,0,10, 0,0,1,10, 0,0,0,10 };
 float ntMatrix[16] = { 1,0,0,-10, 0,1,0,-10, 0,0,1,-10, 0,0,0,-10 };
-float rMatrix[16] = { cos(10),-sin(10),0,0, sin(10),cos(10),0,0, 0,0,1,0, 0,0,0,1 };
-float nrMatrix[16] = { cos(10),-sin(10),0,0, sin(10),cos(10),0,0, 0,0,1,0, 0,0,0,1 };
+float rMatrix[16] = { cos(1),-sin(1),0,0, sin(1),cos(1),0,0, 0,0,1,0, 0,0,0,1 };
+float nrMatrix[16] = { cos(1),-sin(1),0,0, sin(1),cos(1),0,0, 0,0,1,0, 0,0,0,1 };
 float sMatrix[16] = { 1.1,0,0,0, 0,1.1,0,0, 0,0,1.1,0, 0,0,0,0 };
 float nsMatrix[16] = { 0.9,0,0,0, 0,0.9,0,0, 0,0,0.9,0, 0,0,0,0 };
-float cMatrix[16] = { 1,0,0,0, 0.5f,1,0,0, 0,0,1,0, 0,0,0,0 };
+float cMatrix[16] = { 1,0.5f,0,0, 0.5f,1,0,0, 0,0,1,0, 0,0,0,0 };
+float ncMatrix[16] = { 1,-0.5f,0,0, -0.5f,1,0,0, 0,0,1,0, 0,0,0,0 };
 
 int modifierType = 0;
 
@@ -273,6 +274,14 @@ void specialInput(int key, int x, int y)
 				curves[currentCurve].controlPoints[i].y = ntMatrix[4] * _y + ntMatrix[5] * _y + ntMatrix[6] * _y + ntMatrix[7];
 			}
 			break;
+		case 4:
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
+			{
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].y = ncMatrix[4] * _x + ncMatrix[5] * _y + ncMatrix[6] * _y + ncMatrix[7];
+			}
+			break;
 		}
 		break;
 	case GLUT_KEY_DOWN:    // key down
@@ -285,7 +294,16 @@ void specialInput(int key, int x, int y)
 				curves[currentCurve].controlPoints[i].y = tMatrix[4] * _y + tMatrix[5] * _y + tMatrix[6] * _y + tMatrix[7];
 			}
 			break;
+		case 4:
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
+			{
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].y = cMatrix[4] * _x + cMatrix[5] * _y + cMatrix[6] * _y + cMatrix[7];
+			}
+			break;
 		}
+		break;
 	case GLUT_KEY_RIGHT:    // key right
 		switch (modifierType)
 		{
@@ -297,6 +315,15 @@ void specialInput(int key, int x, int y)
 
 			}
 			break;
+		case 2:
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
+			{
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].x = rMatrix[0] * _x + rMatrix[1] * _y + rMatrix[3];
+				curves[currentCurve].controlPoints[i].y = rMatrix[4] * _x + rMatrix[5] * _y + rMatrix[7];
+			}
+			break;
 		case 3:
 			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
@@ -304,6 +331,14 @@ void specialInput(int key, int x, int y)
 				curves[currentCurve].controlPoints[i].x = sMatrix[0] * _x + sMatrix[1] * _x + sMatrix[2] * _x + sMatrix[3];
 				_y = curves[currentCurve].controlPoints[i].y;
 				curves[currentCurve].controlPoints[i].y = sMatrix[4] * _y + sMatrix[5] * _y + sMatrix[6] * _y + sMatrix[7];
+			}
+			break;
+		case 4:
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
+			{
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].x = cMatrix[0] * _x + cMatrix[1] * _y + cMatrix[2] * _x + cMatrix[3];
 			}
 			break;
 		}
@@ -322,10 +357,10 @@ void specialInput(int key, int x, int y)
 		case 2:
 			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				/*_x = curves[currentCurve].controlPoints[i].x;
-				curves[currentCurve].controlPoints[i].x = nrMatrix[0] * _x + nrMatrix[1] * _x + nrMatrix[2] * _x + nrMatrix[3];
+				_x = curves[currentCurve].controlPoints[i].x;
 				_y = curves[currentCurve].controlPoints[i].y;
-				curves[currentCurve].controlPoints[i].y = nrMatrix[4] * _y + nrMatrix[5] * _y + nrMatrix[6] * _y + nrMatrix[7];*/
+				curves[currentCurve].controlPoints[i].x = nrMatrix[0] * _x + nrMatrix[1] * _y + nrMatrix[3];
+				curves[currentCurve].controlPoints[i].y = nrMatrix[4] * _x + nrMatrix[5] * _y + nrMatrix[7];
 			}
 			break;
 		case 3:
@@ -335,6 +370,14 @@ void specialInput(int key, int x, int y)
 				curves[currentCurve].controlPoints[i].x = nsMatrix[0] * _x + nsMatrix[1] * _x + nsMatrix[2] * _x + nsMatrix[3];
 				_y = curves[currentCurve].controlPoints[i].y;
 				curves[currentCurve].controlPoints[i].y = nsMatrix[4] * _y + nsMatrix[5] * _y + nsMatrix[6] * _y + nsMatrix[7];
+			}
+			break;
+		case 4:
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
+			{
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].x = ncMatrix[0] * _x + ncMatrix[1] * _y + ncMatrix[2] * _x + ncMatrix[3];
 			}
 			break;
 		}
@@ -425,6 +468,14 @@ void polyMade_menu(int option) {
 		}
 		break;
 	case 2:
+		if (1 == 1) {
+			Bezier b = Bezier();
+			CurveObject tmpPoly;
+			tmpPoly.controlPoints = b.Raccord(0, curves[currentCurve].controlPoints, 0, 1, 0.05);
+			curves.push_back(tmpPoly);
+			polyColor.push_back(2);
+			currentCurve++;
+		}
 		break;
 	case 3:
 		break;
