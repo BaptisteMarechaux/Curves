@@ -56,6 +56,7 @@ vec2 Bezier::Casteljau(std::vector<vec2> points, float step)
 	Casteljau(newPoints, step);
 }
 
+/*
 std::vector<vec2> Bezier::Spline(float step, float min, float max, vec2 p1, vec2 p2, vec2 p3, vec2 p4)
 {
 	std::vector<vec2> points = std::vector<vec2>();
@@ -81,6 +82,7 @@ std::vector<vec2> Bezier::Spline(float step, float min, float max, vec2 p1, vec2
 
 	return points;
 }
+*/
 
 std::vector<vec2> newPoints;
 std::vector<vec2> returnPoints;
@@ -133,57 +135,35 @@ std::vector<vec2> Bezier::CasteljauBezier(std::vector<vec2> points, float step, 
 	//returnPoints = std::vector<vec2>();
 	step = (max - min) / step;
 	
-	newPoints.clear();
 	for (float t = min; t <= max; t += step) {
 		getCasteljauPoint(points.size(), points, t);
 		//returnPoints.push_back(tmp);
 	}
-	newPoints.push_back(points[points.size() - 1]);
+	newPoints.push_back(points[points.size()-1]);
 	return newPoints;
 }
 
-std::vector<vec2> Bezier::Raccord(int level, std::vector<vec2> points, std::vector<int> paramSpace)
+std::vector<vec2> Bezier::Raccord(int level, std::vector<vec2> points, float r0, float r1, float step)
 {
 	std::vector<vec2> returnPoints = std::vector<vec2>();
 	std::vector<vec2> tmp;
-	vec2 vect;
-	vec2 vect2;
-	vec2 vect3;
 	switch (level)
 	{
 	case 0:
-		//returnPoints =  (CasteljauBezier(points, step, 0, 1));
-		returnPoints.push_back(points[points.size() - 1]);
+		returnPoints =  (CasteljauBezier(points, step, 0, 1));
+		
 		break;
 
 	case 1:
-		returnPoints.push_back(points[points.size()-1]);
-		// Vecteur
-		vect = points[points.size() - 1]- points[points.size() - 2];
-		// Normalisation
-		vect *= (1.0 / vect.length());
-		// Facteur
-		//vect *= ((paramSpace[1]- paramSpace[0]) + (paramSpace[2] - paramSpace[1]))/ (paramSpace[1] - paramSpace[0]);
-		vect *= (paramSpace[0] + paramSpace[1]) / (paramSpace[0]);
-		returnPoints.push_back(points[points.size() - 1] + vect);
+		returnPoints = points;
+		returnPoints.push_back(points[points.size() - 2] + points[points.size() - 1]);
 		break;
+
 	case 2:
 		//n(t)=(1-t)P1+P2
-		returnPoints.push_back(points[points.size() - 1]);
-		vect = points[points.size() - 1] - points[points.size() - 2];
-		//vect *= (1.0 / vect.length());
-		vect *= (paramSpace[0] + paramSpace[1]) / paramSpace[0];
-		vect = points[points.size() - 1] + vect;
-		returnPoints.push_back(vect);
-		vect2 = points[points.size() - 2] - points[points.size() - 3];
-		vect2 *= (1.0 / vect2.length());
-		vect2 *= 2;
-		// Point intermediaire
-		vect2 = points[points.size() - 2] + vect2;
-		vect3 = vect - vect2;
-		//vect3 *= (1.0 / vect3.length());
-		vect3 *= (paramSpace[0] + paramSpace[1]) / paramSpace[0];
-		returnPoints.push_back(vect + vect3);
+		returnPoints = points;
+		returnPoints.push_back(points[points.size() - 3] + points[points.size() - 2]);
+		returnPoints.push_back( points[points.size()-2] + points[points.size()-1]);
 		break;
 	default:
 		break;
@@ -191,15 +171,39 @@ std::vector<vec2> Bezier::Raccord(int level, std::vector<vec2> points, std::vect
 	return returnPoints;
 }
 
-std::vector<vec2> Spline(int level, std::vector<vec2> points, std::vector<float> nodalVec, float step) {
+std::vector<vec2> Bezier::Spline(int level, std::vector<vec2> points, std::vector<float> nodalVec, float step)
+{
+	
 	std::vector<vec2> frags = std::vector<vec2>();
+	std::vector<CurveObject> newCurves = std::vector<CurveObject>();
+
+	if (points.size() < 4)
+	{
+		newCurves[0].controlPoints = points;
+		return std::vector<vec2>();
+	}
+
+
 
 	frags.push_back(points[0]);
+	frags.push_back(points[1]);
 	//On va parcourir les points de la courbes sans avoir à couper le premier et le dernier segment
-	for (int i = 1; i < points.size() - 1; i++)
+	int nodalindex = 0;
+	for (int i = 1; i < points.size() - 2; i++)
 	{
-		vec2 f(0.5 * (points[i + 1].x - points[i].x) , 0.5*(points[i + 1].y - points[i].y) );
+		//prend le 2tier et rajoute le premier tiers du suivant :)
+		vec2 f((points[i + 1] - points[i]) * 0.667f + points[i]);
+
+		//On met un premier point du segment en cours
 		frags.push_back(f);
+
+		vec2 s((points[i + 2] - points[i + 1]) * 0.333f + points[i + 1]);
+
+		//---
+		frags.push_back((s - f)*0.333f + f);
+
+		frags.push_back(s);
+
 	}
 
 	//Faire un algo suivant
@@ -207,10 +211,16 @@ std::vector<vec2> Spline(int level, std::vector<vec2> points, std::vector<float>
 	//prendre tous les segements un par un
 	//Si possible , en prendre 2 a la suite du premier
 	//Faire le cutting sur le 2e segement et le 3e segement
-		//Prendre un pourcentage du 2e segment et le lier au meme pourcentage sur le 3e segment
-		//Prendre le meme pourcentage sur la courbe obtenue pour avoir au total 4 points
-		//stocker ces 4 points en tant que 4 points sur lesquels effectuer un Bezier
+	//Prendre un pourcentage du 2e segment et le lier au meme pourcentage sur le 3e segment
+	//Prendre le meme pourcentage sur la courbe obtenue pour avoir au total 4 points
+	//stocker ces 4 points en tant que 4 points sur lesquels effectuer un Bezier
 	//Recommencer à partir du segement suivant  jusqu'a ce qu'il en reste au moins 2
 
 	return frags;
+}
+
+vec2 Bezier::deBoor(int k, int degree, int i, float x, std::vector<float> knots, std::vector<vec2> ctrlPoints)
+{
+
+	return vec2();
 }
