@@ -131,19 +131,16 @@ void Render()
 				glColor3fv(purpleColor);
 				break;
 			}
-			//casPoints = vector<glm::vec2>(curves[p].curvePoints.size(), vec2(0, 0));
+		
+			glColor3fv(redColor);
 			glBegin(GL_POINTS);
 			for (int i = 0; i < curves[p].controlPoints.size(); i++) {
 				glVertex2i(curves[p].controlPoints[i].x, curves[p].controlPoints[i].y);
 			}
 			glEnd();
-			/*
-			if (curves[p].points.size() >= 4) {
-				for (int i = 0; i < casPoints.size(); i++) {
-					glVertex2i(casPoints[i].x, casPoints[i].y);
-				}
-			}
-			*/
+
+			glColor3fv(blueColor);
+
 			glBegin(GL_LINE_STRIP);
 			for (int i = 0; i < curves[p].curvePoints.size(); i++) {
 				glVertex2i(curves[p].curvePoints[i].x, curves[p].curvePoints[i].y);
@@ -228,6 +225,8 @@ void mouseMotion(int x, int y) {
 // Procédés appelés au clavier
 void keyboard(unsigned char key, int xmouse, int ymouse)
 {
+	vector<CurveObject> splineParts;
+	Bezier bez;
 	// En fonction de la touche
 	switch (key) {
 	// On change la couleur de fond
@@ -244,6 +243,19 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 	case 27:
 		glutDestroyWindow(Win);
 		exit(0);
+		break;
+	case 32:
+		//confirmer la spline
+		bez.Spline(curves[currentCurve].controlPoints, vector<float>());
+		//curves.pop_back();
+		//currentCurve--;
+		for (int i = 0; i < bez.currentCurveObjects.size(); i++) {
+			currentCurve++;
+			curves.push_back(CurveObject());
+			polyColor.push_back(2);
+			curves[curves.size()-1].controlPoints = bez.currentCurveObjects[i];
+			
+		}
 		break;
 	// On zoom avec le + du pavé numérique
 	case '+':
