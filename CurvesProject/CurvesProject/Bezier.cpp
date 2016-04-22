@@ -89,7 +89,7 @@ std::vector<vec2> returnPoints;
 
 vec2 tmpCoord;
 
-void getCasteljauPoint(int n, std::vector<vec2> points, float t) {
+void getCasteljauPoint(int n, std::vector<vec2> points, float t, float min, float max) {
 
 	std::vector<vec2> subTab = points;
 	/*
@@ -112,7 +112,7 @@ void getCasteljauPoint(int n, std::vector<vec2> points, float t) {
 	for (int j = 1; j < n; j++) {
 		s = j;
 		for (int i = 0; i < n - j; i++) {
-			float x = (1 - t) * subTab[i].x + t*subTab[i + 1].x;
+			float x = ((max - t) / (max - min)) * subTab[i].x + ((t-min)/(max-min))*subTab[i + 1].x;
 			float y = (1 - t) * subTab[i].y + t*subTab[i + 1].y;
 			subTab[i] = (vec2(x, y));
 			//newPoints.push_back(vec2(x, y));
@@ -136,7 +136,7 @@ std::vector<vec2> Bezier::CasteljauBezier(std::vector<vec2> points, float step, 
 	step = (max - min) / step;
 	newPoints.clear();
 	for (float t = min; t <= max; t += step) {
-		getCasteljauPoint(points.size(), points, t);
+		getCasteljauPoint(points.size(), points, t, min, max);
 		//returnPoints.push_back(tmp);
 	}
 	newPoints.push_back(points[points.size()-1]);
