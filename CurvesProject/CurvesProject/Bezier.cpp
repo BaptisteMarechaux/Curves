@@ -193,17 +193,18 @@ std::vector<vec2> Bezier::Raccord(int level, std::vector<vec2> points, std::vect
 }
 
 
-std::vector<vec2> Bezier::Spline(int level, std::vector<vec2> points, std::vector<float> nodalVec, float step)
+void Bezier::Spline(std::vector<vec2> points, std::vector<float> nodalVec)
 {
 	
 	std::vector<vec2> frags = std::vector<vec2>();
-	std::vector<CurveObject> newCurves = std::vector<CurveObject>();
-
+	currentCurveObjects = std::vector<std::vector<vec2>>();
+	/*
 	if (points.size() < 4)
 	{
 		newCurves[0].controlPoints = points;
 		return std::vector<vec2>();
 	}
+	*/
 
 
 
@@ -227,18 +228,31 @@ std::vector<vec2> Bezier::Spline(int level, std::vector<vec2> points, std::vecto
 		frags.push_back(s);
 
 	}
+	frags.push_back(points[points.size()-2]);
+	frags.push_back(points[points.size()-1]);
 
-	//Faire un algo suivant
+	for (int i = 0; i < frags.size(); i += 3) {
+		std::vector<vec2> temp = std::vector<vec2>();
+		if (frags.size() - i - 1 > 3) {
+			
+			temp.push_back(frags[i]);
+			temp.push_back(frags[i+1]);
+			temp.push_back(frags[i+2]);
+			temp.push_back(frags[i+3]);
+			currentCurveObjects.push_back(temp);
+		}
+		else
+		{
+			for (int j = i; j < frags.size(); j++) {
+				temp.push_back(frags[j]);
+			}
+			currentCurveObjects.push_back(temp);
+		}
+	}
 
-	//prendre tous les segements un par un
-	//Si possible , en prendre 2 a la suite du premier
-	//Faire le cutting sur le 2e segement et le 3e segement
-	//Prendre un pourcentage du 2e segment et le lier au meme pourcentage sur le 3e segment
-	//Prendre le meme pourcentage sur la courbe obtenue pour avoir au total 4 points
-	//stocker ces 4 points en tant que 4 points sur lesquels effectuer un Bezier
-	//Recommencer à partir du segement suivant  jusqu'a ce qu'il en reste au moins 2
+	std::cout << "Frags : " << frags.size() << std::endl;
 
-	return frags;
+	return;
 }
 
 vec2 Bezier::deBoor(int k, int degree, int i, float x, std::vector<float> knots, std::vector<vec2> ctrlPoints)

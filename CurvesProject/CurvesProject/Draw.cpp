@@ -12,9 +12,6 @@
 #include "Draw.h"
 
 using namespace std;
-
-#define PI 3.14159265
-
 typedef GLfloat color[3];
 
 // Pour les tableaux
@@ -73,8 +70,8 @@ vector<glm::vec2> casPoints = vector<glm::vec2>();
 
 float tMatrix[16] = { 1,0,0,10, 0,1,0,10, 0,0,1,10, 0,0,0,10 };
 float ntMatrix[16] = { 1,0,0,-10, 0,1,0,-10, 0,0,1,-10, 0,0,0,-10 };
-float rMatrix[16] = { cos(1 * PI / 180.0),-sin(1 * PI / 180.0),0,0, sin(1 * PI / 180.0),cos(1 * PI / 180.0),0,0, 0,0,1,0, 0,0,0,1 };
-float nrMatrix[16] = { cos(-1 * PI / 180.0), -sin(-1 * PI / 180.0),0,0, sin(-1 * PI / 180.0),cos(-1 * PI / 180.0),0,0, 0,0,1,0, 0,0,0,1 };
+float rMatrix[16] = { cos(1),-sin(1),0,0, sin(1),cos(1),0,0, 0,0,1,0, 0,0,0,1 };
+float nrMatrix[16] = { cos(1),-sin(1),0,0, sin(1),cos(1),0,0, 0,0,1,0, 0,0,0,1 };
 float sMatrix[16] = { 1.1,0,0,0, 0,1.1,0,0, 0,0,1.1,0, 0,0,0,0 };
 float nsMatrix[16] = { 0.9,0,0,0, 0,0.9,0,0, 0,0,0.9,0, 0,0,0,0 };
 float cMatrix[16] = { 1,0.5f,0,0, 0.5f,1,0,0, 0,0,1,0, 0,0,0,0 };
@@ -84,8 +81,6 @@ int modifierType = 0;
 
 void Initialize() 
 {
-	std::cout << sin(1);
-	std::cout << sin(1.0);
 	glClearColor(1.0, 0.984, 0.906, 0.961);
 	glColor3f(0.0f, 0.0f, 1.0f);
 	// Taille des points
@@ -118,13 +113,6 @@ void Render()
 				curves[p].curvePoints = b.CasteljauBezier(curves[p].controlPoints, nStep, 0, 1);
 			}
 
-			glColor3f(0.0f, 0.0f, 0.5f);
-			glBegin(GL_LINE_STRIP);//POINTS
-			for (int i = 0; i < curves[p].controlPoints.size(); i++) {
-				glVertex2i(curves[p].controlPoints[i].x, curves[p].controlPoints[i].y);
-			}
-			glEnd();
-
 			// On choisi la couleur du poly
 			switch (polyColor[p]) {
 			case 1:
@@ -143,15 +131,16 @@ void Render()
 				glColor3fv(purpleColor);
 				break;
 			}
-			//casPoints = vector<glm::vec2>(curves[p].curvePoints.size(), vec2(0, 0));
-
-			/*
-			if (curves[p].points.size() >= 4) {
-				for (int i = 0; i < casPoints.size(); i++) {
-					glVertex2i(casPoints[i].x, casPoints[i].y);
-				}
+		
+			glColor3fv(redColor);
+			glBegin(GL_POINTS);
+			for (int i = 0; i < curves[p].controlPoints.size(); i++) {
+				glVertex2i(curves[p].controlPoints[i].x, curves[p].controlPoints[i].y);
 			}
-			*/
+			glEnd();
+
+			glColor3fv(blueColor);
+
 			glBegin(GL_LINE_STRIP);
 			for (int i = 0; i < curves[p].curvePoints.size(); i++) {
 				glVertex2i(curves[p].curvePoints[i].x, curves[p].curvePoints[i].y);
@@ -236,6 +225,8 @@ void mouseMotion(int x, int y) {
 // Procédés appelés au clavier
 void keyboard(unsigned char key, int xmouse, int ymouse)
 {
+	vector<CurveObject> splineParts;
+	Bezier bez;
 	// En fonction de la touche
 	switch (key) {
 	// On change la couleur de fond
@@ -252,6 +243,19 @@ void keyboard(unsigned char key, int xmouse, int ymouse)
 	case 27:
 		glutDestroyWindow(Win);
 		exit(0);
+		break;
+	case 32:
+		//confirmer la spline
+		bez.Spline(curves[currentCurve].controlPoints, vector<float>());
+		//curves.pop_back();
+		//currentCurve--;
+		for (int i = 0; i < bez.currentCurveObjects.size(); i++) {
+			currentCurve++;
+			curves.push_back(CurveObject());
+			polyColor.push_back(2);
+			curves[curves.size()-1].controlPoints = bez.currentCurveObjects[i];
+			
+		}
 		break;
 	// On zoom avec le + du pavé numérique
 	case '+':
@@ -282,24 +286,18 @@ void specialInput(int key, int x, int y)
 		switch (modifierType)
 		{
 		case 1:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].y = ntMatrix[4] * _y + ntMatrix[5] * _y + ntMatrix[6] * _y + ntMatrix[7];
-				}
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].y = ntMatrix[4] * _y + ntMatrix[5] * _y + ntMatrix[6] * _y + ntMatrix[7];
 			}
 			break;
 		case 4:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].y = ncMatrix[4] * _x + ncMatrix[5] * _y + ncMatrix[6] * _y + ncMatrix[7];
-				}
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].y = ncMatrix[4] * _x + ncMatrix[5] * _y + ncMatrix[6] * _y + ncMatrix[7];
 			}
 			break;
 		}
@@ -308,24 +306,18 @@ void specialInput(int key, int x, int y)
 		switch (modifierType)
 		{
 		case 1:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].y = tMatrix[4] * _y + tMatrix[5] * _y + tMatrix[6] * _y + tMatrix[7];
-				}
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].y = tMatrix[4] * _y + tMatrix[5] * _y + tMatrix[6] * _y + tMatrix[7];
 			}
 			break;
 		case 4:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].y = cMatrix[4] * _x + cMatrix[5] * _y + cMatrix[6] * _y + cMatrix[7];
-				}
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].y = cMatrix[4] * _x + cMatrix[5] * _y + cMatrix[6] * _y + cMatrix[7];
 			}
 			break;
 		}
@@ -334,49 +326,37 @@ void specialInput(int key, int x, int y)
 		switch (modifierType)
 		{
 		case 1:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					curves[p].controlPoints[i].x = tMatrix[0] * _x + tMatrix[1] * _x + tMatrix[2] * _x + tMatrix[3];
+				_x = curves[currentCurve].controlPoints[i].x;
+				curves[currentCurve].controlPoints[i].x = tMatrix[0] * _x + tMatrix[1] * _x + tMatrix[2] * _x + tMatrix[3];
 
-				}
 			}
 			break;
 		case 2:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].x = rMatrix[0] * _x + rMatrix[1] * _y + rMatrix[3];
-					curves[p].controlPoints[i].y = rMatrix[4] * _x + rMatrix[5] * _y + rMatrix[7];
-				}
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].x = rMatrix[0] * _x + rMatrix[1] * _y + rMatrix[3];
+				curves[currentCurve].controlPoints[i].y = rMatrix[4] * _x + rMatrix[5] * _y + rMatrix[7];
 			}
 			break;
 		case 3:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					curves[p].controlPoints[i].x = sMatrix[0] * _x + sMatrix[1] * _x + sMatrix[2] * _x + sMatrix[3];
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].y = sMatrix[4] * _y + sMatrix[5] * _y + sMatrix[6] * _y + sMatrix[7];
-				}
+				_x = curves[currentCurve].controlPoints[i].x;
+				curves[currentCurve].controlPoints[i].x = sMatrix[0] * _x + sMatrix[1] * _x + sMatrix[2] * _x + sMatrix[3];
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].y = sMatrix[4] * _y + sMatrix[5] * _y + sMatrix[6] * _y + sMatrix[7];
 			}
 			break;
 		case 4:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].x = cMatrix[0] * _x + cMatrix[1] * _y + cMatrix[2] * _x + cMatrix[3];
-				}
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].x = cMatrix[0] * _x + cMatrix[1] * _y + cMatrix[2] * _x + cMatrix[3];
 			}
 			break;
 		}
@@ -385,49 +365,37 @@ void specialInput(int key, int x, int y)
 		switch (modifierType)
 		{
 		case 1:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					curves[p].controlPoints[i].x = ntMatrix[0] * _x + ntMatrix[1] * _x + ntMatrix[2] * _x + ntMatrix[3];
+				_x = curves[currentCurve].controlPoints[i].x;
+				curves[currentCurve].controlPoints[i].x = ntMatrix[0] * _x + ntMatrix[1] * _x + ntMatrix[2] * _x + ntMatrix[3];
 
-				}
 			}
 			break;
 		case 2:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].x = nrMatrix[0] * _x + nrMatrix[1] * _y + nrMatrix[3];
-					curves[p].controlPoints[i].y = nrMatrix[4] * _x + nrMatrix[5] * _y + nrMatrix[7];
-				}
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].x = nrMatrix[0] * _x + nrMatrix[1] * _y + nrMatrix[3];
+				curves[currentCurve].controlPoints[i].y = nrMatrix[4] * _x + nrMatrix[5] * _y + nrMatrix[7];
 			}
 			break;
 		case 3:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					curves[p].controlPoints[i].x = nsMatrix[0] * _x + nsMatrix[1] * _x + nsMatrix[2] * _x + nsMatrix[3];
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].y = nsMatrix[4] * _y + nsMatrix[5] * _y + nsMatrix[6] * _y + nsMatrix[7];
-				}
+				_x = curves[currentCurve].controlPoints[i].x;
+				curves[currentCurve].controlPoints[i].x = nsMatrix[0] * _x + nsMatrix[1] * _x + nsMatrix[2] * _x + nsMatrix[3];
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].y = nsMatrix[4] * _y + nsMatrix[5] * _y + nsMatrix[6] * _y + nsMatrix[7];
 			}
 			break;
 		case 4:
-			for (int p = 0; p < curves.size(); p++)
+			for (size_t i = 0; i < curves[currentCurve].controlPoints.size(); i++)
 			{
-				for (size_t i = 0; i < curves[p].controlPoints.size(); i++)
-				{
-					_x = curves[p].controlPoints[i].x;
-					_y = curves[p].controlPoints[i].y;
-					curves[p].controlPoints[i].x = ncMatrix[0] * _x + ncMatrix[1] * _y + ncMatrix[2] * _x + ncMatrix[3];
-				}
+				_x = curves[currentCurve].controlPoints[i].x;
+				_y = curves[currentCurve].controlPoints[i].y;
+				curves[currentCurve].controlPoints[i].x = ncMatrix[0] * _x + ncMatrix[1] * _y + ncMatrix[2] * _x + ncMatrix[3];
 			}
 			break;
 		}
