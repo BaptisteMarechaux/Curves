@@ -134,7 +134,7 @@ std::vector<vec2> Bezier::CasteljauBezier(std::vector<vec2> points, float step, 
 	//newPoints = points;
 	//returnPoints = std::vector<vec2>();
 	step = (max - min) / step;
-	
+	newPoints.clear();
 	for (float t = min; t <= max; t += step) {
 		getCasteljauPoint(points.size(), points, t);
 		//returnPoints.push_back(tmp);
@@ -143,33 +143,55 @@ std::vector<vec2> Bezier::CasteljauBezier(std::vector<vec2> points, float step, 
 	return newPoints;
 }
 
-std::vector<vec2> Bezier::Raccord(int level, std::vector<vec2> points, float r0, float r1, float step)
+std::vector<vec2> Bezier::Raccord(int level, std::vector<vec2> points, std::vector<int> paramSpace)
 {
 	std::vector<vec2> returnPoints = std::vector<vec2>();
 	std::vector<vec2> tmp;
+	vec2 vect;
+	vec2 vect2;
+	vec2 vect3;
 	switch (level)
 	{
 	case 0:
-		returnPoints =  (CasteljauBezier(points, step, 0, 1));
-		
+		//returnPoints =  (CasteljauBezier(points, step, 0, 1));
+		returnPoints.push_back(points[points.size() - 1]);
 		break;
 
 	case 1:
-		returnPoints = points;
-		returnPoints.push_back(points[points.size() - 2] + points[points.size() - 1]);
+		returnPoints.push_back(points[points.size() - 1]);
+		// Vecteur
+		vect = points[points.size() - 1] - points[points.size() - 2];
+		// Normalisation
+		vect *= (1.0 / vect.length());
+		// Facteur
+		//vect *= ((paramSpace[1]- paramSpace[0]) + (paramSpace[2] - paramSpace[1]))/ (paramSpace[1] - paramSpace[0]);
+		vect *= (paramSpace[0] + paramSpace[1]) / (paramSpace[0]);
+		returnPoints.push_back(points[points.size() - 1] + vect);
 		break;
-
 	case 2:
 		//n(t)=(1-t)P1+P2
-		returnPoints = points;
-		returnPoints.push_back(points[points.size() - 3] + points[points.size() - 2]);
-		returnPoints.push_back( points[points.size()-2] + points[points.size()-1]);
+		returnPoints.push_back(points[points.size() - 1]);
+		vect = points[points.size() - 1] - points[points.size() - 2];
+		//vect *= (1.0 / vect.length());
+		vect *= (paramSpace[0] + paramSpace[1]) / paramSpace[0];
+		vect = points[points.size() - 1] + vect;
+		returnPoints.push_back(vect);
+		vect2 = points[points.size() - 2] - points[points.size() - 3];
+		vect2 *= (1.0 / vect2.length());
+		vect2 *= 2;
+		// Point intermediaire
+		vect2 = points[points.size() - 2] + vect2;
+		vect3 = vect - vect2;
+		//vect3 *= (1.0 / vect3.length());
+		vect3 *= (paramSpace[0] + paramSpace[1]) / paramSpace[0];
+		returnPoints.push_back(vect + vect3);
 		break;
 	default:
 		break;
 	}
 	return returnPoints;
 }
+
 
 std::vector<vec2> Bezier::Spline(int level, std::vector<vec2> points, std::vector<float> nodalVec, float step)
 {

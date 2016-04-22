@@ -12,6 +12,7 @@
 #include "Draw.h"
 
 using namespace std;
+typedef GLfloat color[3];
 
 // Pour les tableaux
 #include <vector>

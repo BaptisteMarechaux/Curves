@@ -1,7 +1,5 @@
 #pragma once
 
-typedef GLfloat color[3];
-
 #include <vector>
 #include "Bezier.h"
 #include "libs\glm\glm.hpp"
