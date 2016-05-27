@@ -1,0 +1,1 @@
+Appuyer sur la barre d'espace (après avoir tracé une courbe de Bezier) fait apparaître une spline plus exacte que celle de l'interface.
